@@ -1,5 +1,5 @@
 *mlrun
 *.csv
-./database/__pycache__/
-./steps/__pycache__/
-./steps/utility/__pycache__/
+database/__pycache__/
+steps/__pycache__/
+steps/utility/__pycache__/
