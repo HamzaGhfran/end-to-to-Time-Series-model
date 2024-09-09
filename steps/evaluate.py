@@ -3,9 +3,9 @@ from steps.predict import predict_fn
 import numpy as np
 import pandas as pd
 
-def evaluate_fn(model, test_data, eval_df_noexog):
+def evaluate_fn(model, test, eval_df_noexog):
 
-    forecast = predict_fn(model, len(test_data))
+    forecast = predict_fn(model, 4)
     merged_df = pd.merge(forecast, eval_df_noexog, on='unique_id', suffixes=('_forecast', '_eval'))
     merged_df['model'] = merged_df['best_model'] + '_forecast'
     merged_df['prediction'] = merged_df.apply(lambda row: row[row['model']], axis=1)   

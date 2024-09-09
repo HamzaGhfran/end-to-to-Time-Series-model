@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import mlflow
+import mlflow.statsmodels
 from urllib.parse import urlparse
 from mlflow.models import infer_signature
 from steps.evaluate import evaluate_fn
@@ -56,7 +57,7 @@ def crossvalidate_and_evaluate(df, metric, exog=True, plot=False):
         df=df,
         h=1,
         step_size=1,
-        n_windows=12
+        n_windows=1
     )
     crossvaldation_df.reset_index(inplace=True)
 
@@ -113,6 +114,7 @@ def estimator_fn(data):
 
     eval_df_noexog.reset_index(inplace=True)
 
+    mlflow.statsmodels.autolog()
     with mlflow.start_run():
     # Model Training
         sf = StatsForecast(
@@ -126,22 +128,26 @@ def estimator_fn(data):
             prediction_intervals=None
         )
 
-        mse, rmse, mean_error = evaluate_fn(sf, test)
+        mse, rmse, mean_error, result = evaluate_fn(sf, test, eval_df_noexog)
+
+        print("rmse: ", rmse)
+        print("mse: ", mse)
+        print("mean_error: ", mean_error)
 
         mlflow.log_metric("rmse", rmse)
         mlflow.log_metric("mse", mse)
         mlflow.log_metric("mean_error", mean_error)
 
-        predictions = sf.predict(train)
-        signature = infer_signature(train, predictions)
+        # artifact_path = "./mlruns/0"
 
-        tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
+        # tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
 
-        # Model registry does not work with file store
-        if tracking_url_type_store != "file":
+        # # Model registry does not work with file store
+        # if tracking_url_type_store != "file":
 
-            mlflow.sklearn.log_model(
-                sf, "model", registered_model_name="ElasticnetWineModel", signature=signature
-            )
-        else:
-            mlflow.sklearn.log_model(sf, "model", signature=signature)
+        #     mlflow.statsmodels.log_model(
+        #         sf, artifact_path, registered_model_name="TimeSeriesModel"
+        #     )
+        # else:
+        #     mlflow.statsmodels.log_model(sf, artifact_path)
+
