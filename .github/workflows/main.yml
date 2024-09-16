@@ -23,4 +23,4 @@ jobs:
         mkdir -p ~/.ssh
         echo "$SSH_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "cd /path/to/mlflow_pipeline && mlflow run ."
+        ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "cd /home/hamza/Desktop/end-to-to-Time-Series-model&& mlflow run ."
