@@ -1,6 +1,6 @@
 import pandas as pd
 #import matplotlib.pyplot as plt
-from steps.utility._utili import make_short_form, get_season, is_eid_ul_adha, is_monsoon, is_ramadan, extract_medicine_type, insert_medicine_type
+from utility._utili import make_short_form, get_season, is_eid_ul_adha, is_monsoon, is_ramadan, extract_medicine_type, insert_medicine_type
 
 # Wedding dict()
 wedding_seasons = {

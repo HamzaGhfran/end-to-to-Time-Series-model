@@ -1,5 +1,5 @@
 # Implementation for evaluation function for test data
-from steps.predict import predict_fn
+from predict import predict_fn
 import numpy as np
 import pandas as pd
 
