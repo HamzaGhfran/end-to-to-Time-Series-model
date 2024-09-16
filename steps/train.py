@@ -2,13 +2,18 @@ import pandas as pd
 import numpy as np
 import mlflow
 import mlflow.statsmodels
+from mlflow.models import infer_signature
 from urllib.parse import urlparse
 from mlflow.models import infer_signature
-from steps.evaluate import evaluate_fn
 from statsforecast import StatsForecast
 from utilsforecast.losses import smape, rmse, mae
 from utilsforecast.evaluation import evaluate
 import matplotlib.pyplot as plt
+from ingest import ingest_fn
+from utility.modelwrap import StatsForecastModel
+from preprocess import preprocess_fn
+from evaluate import evaluate_fn
+import yaml
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -57,7 +62,7 @@ def crossvalidate_and_evaluate(df, metric, exog=True, plot=False):
         df=df,
         h=1,
         step_size=1,
-        n_windows=1
+        n_windows= 2
     )
     crossvaldation_df.reset_index(inplace=True)
 
@@ -98,11 +103,15 @@ models = [
 
 
 
-def estimator_fn(data):
+def estimator_fn(data_path):
+
+    data = ingest_fn(data_path)
+
+    data = preprocess_fn(data)
 
     
-    # data.drop([ 'Unnamed: 0','hospital', 'medicine_type'], axis=1, inplace=True)
-    # train and test split
+    #data.drop([ 'Unnamed: 0','hospital', 'medicine_type'], axis=1, inplace=True)
+    #train and test split
     train = data[data['ds']<='2023-12-01']
     test = data[data['ds']>='2024-01-01']
 
@@ -114,40 +123,72 @@ def estimator_fn(data):
 
     eval_df_noexog.reset_index(inplace=True)
 
-    mlflow.statsmodels.autolog()
-    with mlflow.start_run():
-    # Model Training
-        sf = StatsForecast(
-        models=models,
-        freq='M', 
-        fallback_model = SeasonalNaive(season_length=12, alias='Fallback-SNaive'),
-        n_jobs=-1,
-        )
-        sf.fit(
-            df = train[['ds', 'unique_id', 'y']],
-            prediction_intervals=None
-        )
+    print(train)
+    
+    # mlflow.end_run()
+    # mlflow.set_tracking_uri("http://127.0.0.1:5000")
+    # experiment_name = "stats_models"
+    # experiment = mlflow.get_experiment_by_name(experiment_name).experiment_id
 
-        mse, rmse, mean_error, result = evaluate_fn(sf, test, eval_df_noexog)
+    # with mlflow.start_run(experiment_id=experiment) as run:
 
-        print("rmse: ", rmse)
-        print("mse: ", mse)
-        print("mean_error: ", mean_error)
+    mlflow.set_tag("mlflow.runName", "train")
 
-        mlflow.log_metric("rmse", rmse)
-        mlflow.log_metric("mse", mse)
-        mlflow.log_metric("mean_error", mean_error)
+    print("Training Start.....")
+    sf = StatsForecast(
+    models=models,
+    freq='M', 
+    fallback_model = SeasonalNaive(season_length=12, alias='Fallback-SNaive'),
+    n_jobs=-1,
+    )
+    sf.fit(
+        df = train[['ds', 'unique_id', 'y']],
+        prediction_intervals=None
+    )
+    print("Evaluation Start...")
+    mse, rmse, mean_error, result= evaluate_fn(sf, test, eval_df_noexog)
+    print("Evaluation End...")
 
-        # artifact_path = "./mlruns/0"
+    print("rmse: ", rmse)
+    print("mse: ", mse)
+    print("mean_error: ", mean_error)
+    mlflow.log_metric("rmse", rmse)
+    mlflow.log_metric("mse", mse)
+    mlflow.log_metric("mean_error", mean_error)
 
-        # tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
+    artifacts_path = "code"
 
-        # # Model registry does not work with file store
-        # if tracking_url_type_store != "file":
+    #project_dir = "./"
 
-        #     mlflow.statsmodels.log_model(
-        #         sf, artifact_path, registered_model_name="TimeSeriesModel"
-        #     )
-        # else:
-        #     mlflow.statsmodels.log_model(sf, artifact_path)
+    h = 4
+    predictions = sf.predict(h=h)
+    signature = infer_signature(h, predictions)# predictions = sf.predict(train)
 
+    conda_env = "/home/hamza/BSCS/TSF/conda.yaml"
+
+    sf.save("Forecasting.pkl")
+
+    mlflow.log_artifact("Forecasting.pkl")    
+
+    mlflow.pyfunc.log_model(
+        artifact_path=artifacts_path,
+        python_model= StatsForecastModel(sf),
+        conda_env=conda_env,
+        #artifacts = {"code":project_dir},
+        registered_model_name="Stats_Model1",
+        signature = signature,
+        input_example = h
+    )
+
+
+    
+        
+
+
+    
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data_path", type=str, default="data/saadHospitalPharmacy.csv")
+    args = parser.parse_args()
+    estimator_fn(args.data_path)

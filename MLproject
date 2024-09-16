@@ -1,0 +1,16 @@
+  name: mlflow_pipline
+
+  conda_env: conda.yaml
+
+  entry_points:
+    main:
+      parameters:
+        data_path: {type: str, default: "data/saadHospitalPharmacy.csv"}
+      command: "python steps/train.py --data_path {data_path}"
+
+    stage:
+      parameters:
+        model_name: {type: str, default: "Stats_Model1"}
+        version: {type: int, default: 1}
+        stage: {type: str, default: "Staging"}  # Default to Staging, but can change to "Production" etc.
+      command: "python steps/stage_model.py --model_name {model_name} --version {version} --stage {stage}"
