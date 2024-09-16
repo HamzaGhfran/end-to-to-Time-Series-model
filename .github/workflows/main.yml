@@ -1,0 +1,26 @@
+
+name: MLflow Pipeline Automation
+
+on:
+  push:
+    branches:
+      - Hamza_feature/Time-Series
+
+jobs:
+  run_pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: SSH to Server and Run Pipeline
+      env:
+        SERVER_IP: ${{ secrets.SERVER_IP }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+        SSH_KEY: ${{ secrets.SSH_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "cd /path/to/mlflow_pipeline && mlflow run ."
