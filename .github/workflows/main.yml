@@ -19,5 +19,5 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{secrets.SSH_KEY}}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh -T -o StrictHostKeyChecking=no ${{secrets.SERVER_USER}}@${{secrets.SERVER_IP}} "mlflow run ."
+        ssh -o StrictHostKeyChecking=no ${{secrets.SERVER_USER}}@${{secrets.SERVER_IP}} "mlflow run ."
 
