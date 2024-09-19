@@ -12,11 +12,10 @@ wedding_seasons = {
     11: 1  # November
 }
 
-def preprocess_fn(data_path):
+def preprocess_fn(data):
     """
     Implement your preprocess function here
     """
-    data = pd.read_csv(data_path)
 
     data.columns = ['hospital', 'store', 'year', 'month','item', 'transaction', 'y', 'received']
 
@@ -73,14 +72,4 @@ def preprocess_fn(data_path):
     df['unique_id'] = df.apply(lambda row: insert_medicine_type(row['unique_id'], row['medicine_type']), axis=1)
     
     print("Preprocess Done...")
-
-    df.to_csv("./data/preprocess_data.csv")
-    #return df
-
-
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--data_path", type=str, default="data/raw_data.csv")
-    args = parser.parse_args()
-    preprocess_fn(args.data_path)
+    return df
