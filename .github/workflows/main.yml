@@ -16,9 +16,7 @@ jobs:
 
     - name: SSH to Server and Run Pipeline
       run: |
-        mkdir -p ~/.ssh
-        echo "${{secrets.SSH_KEY}}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
 
-        ssh -T -o StrictHostKeyChecking=no ${{secrets.SERVER_USER}}@${{secrets.SERVER_IP}} "mlflow run ."
-
+        export MLFLOW_TRACKING_URI = "http://0.0.0.0:5000"
+        export MLFLOW_EXPERIMENT_NAME="Stats_Model2"
+        mlflow run .
