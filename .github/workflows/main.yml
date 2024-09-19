@@ -17,6 +17,6 @@ jobs:
     - name: SSH to Server and Run Pipeline
       run: |
 
-        export MLFLOW_TRACKING_URI = "http://0.0.0.0:5000"
-        export MLFLOW_EXPERIMENT_NAME="Stats_Model2"
+        bash - -c 'export MLFLOW_TRACKING_URI="http://0.0.0.0:5000"''
+        bash -c 'export MLFLOW_EXPERIMENT_NAME="Stats_Model2"''
         mlflow run .
