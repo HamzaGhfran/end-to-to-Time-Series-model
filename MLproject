@@ -3,9 +3,19 @@
   conda_env: conda.yaml
 
   entry_points:
-    main:
+
+    ingest:
       parameters:
         data_path: {type: str, default: "data/saadHospitalPharmacy.csv"}
+      command: "python steps/ingest.py --data_path {data_path}"
+    
+    preprocess:
+      parameters:
+        data_path: {type: str, default: "data/raw_data.csv"}
+      command: "python steps/preprocess.py --data_path {data_path}"
+    train:
+      parameters:
+        data_path: {type: str, default: "data/preprocess_data.csv"}
       command: "python steps/train.py --data_path {data_path}"
 
     stage:

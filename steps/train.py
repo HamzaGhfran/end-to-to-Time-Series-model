@@ -105,10 +105,7 @@ models = [
 
 def estimator_fn(data_path):
 
-    data = ingest_fn(data_path)
-
-    data = preprocess_fn(data)
-
+    data = pd.read_csv(data_path)
     
     #data.drop([ 'Unnamed: 0','hospital', 'medicine_type'], axis=1, inplace=True)
     #train and test split
